@@ -42,6 +42,12 @@ class CompsRequest(BaseModel):
 
 class CompProperty(BaseModel):
     address: str
+    city: str
+    state: str
+    zip_code: str
+    county: str
+    longitude: float
+    latitude: float
     price: int
     bedrooms: int
     bathrooms: float

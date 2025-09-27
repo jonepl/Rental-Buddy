@@ -107,12 +107,16 @@ class RentalService:
         """
         try:
             # Extract required fields
+            address = listing.get("formattedAddress") or listing.get("address")
+            city = listing.get("city")
+            state = listing.get("state")
+            zip_code = listing.get("zipCode")
+            county = listing.get("county")
+            latitude = listing.get("latitude")
+            longitude = listing.get("longitude")
             price = listing.get("price")
             bedrooms = listing.get("bedrooms")
             bathrooms = listing.get("bathrooms")
-            address = listing.get("formattedAddress") or listing.get("address")
-            latitude = listing.get("latitude")
-            longitude = listing.get("longitude")
             square_footage = listing.get("squareFootage")
 
             # Filter out listings with missing critical data
@@ -128,6 +132,12 @@ class RentalService:
 
             return CompProperty(
                 address=address,
+                city=city,
+                state=state,
+                zip_code=zip_code,
+                county=county,
+                latitude=latitude,
+                longitude=longitude,
                 price=int(price),
                 bedrooms=int(bedrooms),
                 bathrooms=float(bathrooms),
@@ -148,6 +158,12 @@ class RentalService:
         mock_listings = [
             {
                 "address": f"123 Mock St, Test City, FL 33301",
+                "city": "Test City",
+                "state": "FL",
+                "zip_code": "33301",
+                "county": "Test County",
+                "latitude": 30.2672,
+                "longitude": -97.7431,
                 "price": 2400,
                 "bedrooms": bedrooms,
                 "bathrooms": bathrooms,
@@ -156,6 +172,12 @@ class RentalService:
             },
             {
                 "address": f"456 Sample Ave, Test City, FL 33301",
+                "city": "Test City",
+                "state": "FL",
+                "zip_code": "33301",
+                "county": "Test County",
+                "latitude": 30.2672,
+                "longitude": -97.7431,
                 "price": 2300,
                 "bedrooms": bedrooms,
                 "bathrooms": bathrooms,
@@ -164,6 +186,12 @@ class RentalService:
             },
             {
                 "address": f"789 Demo Blvd, Test City, FL 33301",
+                "city": "Test City",
+                "state": "FL",
+                "zip_code": "33301",
+                "county": "Test County",
+                "latitude": 30.2672,
+                "longitude": -97.7431,
                 "price": 2500,
                 "bedrooms": bedrooms,
                 "bathrooms": bathrooms,

@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.models.schemas import CompProperty, ErrorCode, ErrorResponse
+from app.models.schemas import CompProperty, ErrorCode
 
 client = TestClient(app)
 
@@ -45,6 +45,12 @@ class TestCompsEndpoint:
         self.m_cache.get.return_value = None
         comp = CompProperty(
             address="456 Oak Ave, Austin, TX 78702",
+            city="Austin",
+            state="TX",
+            zip_code="78702",
+            county="Travis",
+            longitude=-97.720118,
+            latitude=30.263412,
             price=2450,
             bedrooms=2,
             bathrooms=2.0,
@@ -88,6 +94,12 @@ class TestCompsEndpoint:
             "comps": [
                 {
                     "address": "789 Pine St, Austin, TX 78703",
+                    "city": "Austin",
+                    "state": "TX",
+                    "zip_code": "78703",
+                    "county": "Travis",
+                    "longitude": -97.750000,
+                    "latitude": 30.270000,
                     "price": 2300,
                     "bedrooms": 2,
                     "bathrooms": 1.5,
