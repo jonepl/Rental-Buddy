@@ -10,25 +10,25 @@
 ## 2. Problem Statement
 When purchasing a property with the intention of later renting it out, one of the key factors is understanding the local rental market. Currently, there is no simple tool to provide quick and accurate rental comps for a given address. Homebuyers and investors must manually search across multiple listing platforms.  
 
-Rental Buddy aims to solve this problem by providing an API that returns the **five closest rental properties** that match the number of bedrooms and bathrooms of the subject property.  
+Rental Buddy aims to solve this problem by providing an API that returns comparable rental properties near the subject property.  
 
 ---
 
 ## 3. Proposal
-We will build a Python-based API that, given a valid U.S. street address and bedroom/bathroom count, returns the top 5 comparable rental listings.  
+We will build a Python-based API that returns comparable rental listings near a specified location.  
 
 - **Inputs:**  
-  - `address` (string, full U.S. street address) — optional if `latitude` & `longitude` provided
-  - `latitude` (number), `longitude` (number) — optional; if present, skip geocoding
-  - `bedrooms` (integer, ≥ 0)
-  - `bathrooms` (number, multiple of 0.5; e.g., 1, 1.5, 2)
-  - `radius_miles` (number, default 5)
-  - `days_old` (string, default "*:270")
+  - `address` (string, full U.S. street address) — optional; must provide this OR both `latitude` & `longitude`
+  - `latitude` (number), `longitude` (number) — optional; must provide both if `address` not provided; if present, skip geocoding
+  - `radius_miles` (number) — required
+  - `bedrooms` (integer, ≥ 0) — optional
+  - `bathrooms` (number, multiple of 0.5; e.g., 1, 1.5, 2) — optional
+  - `days_old` (string, default "*:270") — optional
 
 - **Outputs:**  
   - JSON object with:  
     - Input address (string)  
-    - List of up to 5 comps, each containing:  
+    - List of comps, each containing:  
       - `address`  
       - `price` (USD, integer)  
       - `bedrooms` (integer)  
@@ -44,7 +44,7 @@ We will build a Python-based API that, given a valid U.S. street address and bed
 - Sorting: Sort by distance_miles (asc), then price (asc), then square_footage (desc).
 - Search window: Default radius_miles = 5; default recency days_old = "*:270". Both are overridable via request body.
 - Data quality: Drop records with missing price or missing coordinates; dedupe by formattedAddress (case-insensitive).
-- Provider behavior: For RentCast listings, request limit=50; compute distance via Haversine from the subject point; then filter/sort and return the nearest 5.
+- Provider behavior: For RentCast listings, request limit=50; compute distance via Haversine from the subject point; then filter/sort and return the nearest results.
 - Errors: Use structured errors with codes:
   - 400_INVALID_INPUT (bad/missing address+coords, invalid bath step)
   - 404_NO_RESULTS (no matches after filtering)
@@ -178,7 +178,7 @@ We will build a Python-based API that, given a valid U.S. street address and bed
 ---
 
 ## 8. Success Criteria
-- Returns 5 matching comps for valid input  
+- Returns matching comps for valid input  
 - Error messages follow JSON schema  
 - Consistent output key names  
 - Unit, integration & end-to-end tests passing  

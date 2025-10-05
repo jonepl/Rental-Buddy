@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     # Configuration
     rentcast_radius_miles_default: float = 5.0
     rentcast_days_old_default: str = "*:270"
-    rentcast_request_cap: int = 50
+    rentcast_request_cap: int = 100
     request_timeout_seconds: int = 12
     max_results: int = 5
     rate_limit_rps: int = 20

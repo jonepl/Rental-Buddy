@@ -26,7 +26,7 @@ async def get_rental_comps(request: CompsRequest):
     """
     Get rental comparables for a given property
 
-    Returns up to 5 rental properties that match the bedroom/bathroom criteria,
+    Returns rental properties that match the bedroom/bathroom criteria,
     sorted by distance from the subject property.
     """
     try:

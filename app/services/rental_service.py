@@ -21,10 +21,10 @@ class RentalService:
         self,
         latitude: float,
         longitude: float,
-        bedrooms: int,
-        bathrooms: float,
+        bedrooms: Optional[int] = None,
+        bathrooms: Optional[float] = None,
         radius_miles: float = 5.0,
-        days_old: str = "*:270",
+        days_old: Optional[str] = None,
     ) -> List[CompProperty]:
         """
         Fetch rental listings from RentCast API and return filtered/sorted comps
@@ -36,20 +36,25 @@ class RentalService:
             "latitude": latitude,
             "longitude": longitude,
             "radius": radius_miles or settings.rentcast_radius_miles_default,
-            "bedrooms": bedrooms,
-            "bathrooms": bathrooms,
             "daysOld": days_old or settings.rentcast_days_old_default,
-            "limit": min(
-                50, self.request_cap
-            ),  # Use request cap but max 50 per API limits
+            "limit": min(50, self.request_cap),
         }
+        # Only include bed/bath filters if provided
+        if bedrooms is not None:
+            params["bedrooms"] = bedrooms
+        if bathrooms is not None:
+            params["bathrooms"] = bathrooms
+        if days_old is not None:
+            params["daysOld"] = days_old
 
         headers = {"X-Api-Key": self.api_key, "accept": "application/json"}
 
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 logger.info(
-                    f"Fetching rentals for {latitude}, {longitude} - {bedrooms}br/{bathrooms}ba"
+                    f"Fetching rentals for {latitude}, {longitude}"
+                    + (f" - {bedrooms}br" if bedrooms is not None else "")
+                    + (f"/{bathrooms}ba" if bathrooms is not None else "")
                 )
                 response = await client.get(
                     self.base_url, params=params, headers=headers
@@ -76,7 +81,7 @@ class RentalService:
                     key=lambda x: (x.distance_miles, x.price, -(x.square_footage or 0))
                 )
 
-                # Return top 5
+                # Return up to configured max results
                 return comps[: settings.max_results]
 
         except httpx.TimeoutException:
@@ -97,8 +102,8 @@ class RentalService:
         listing: Dict[Any, Any],
         subject_lat: float,
         subject_lng: float,
-        target_bedrooms: int,
-        target_bathrooms: float,
+        target_bedrooms: Optional[int],
+        target_bathrooms: Optional[float],
     ) -> Optional[CompProperty]:
         """
         Process a single listing from RentCast API into a CompProperty
@@ -123,8 +128,14 @@ class RentalService:
             if not all([price, address, latitude, longitude]):
                 return None
 
-            # Ensure exact bed/bath match
-            if bedrooms < target_bedrooms or bathrooms < target_bathrooms:
+            # Ensure bed/bath minimums if provided. Guard against missing values in provider data.
+            if target_bedrooms is not None and (
+                bedrooms is None or bedrooms < target_bedrooms
+            ):
+                return None
+            if target_bathrooms is not None and (
+                bathrooms is None or bathrooms < target_bathrooms
+            ):
                 return None
 
             # Calculate distance
@@ -150,7 +161,7 @@ class RentalService:
             return None
 
     async def get_mock_comps(
-        self, latitude: float, longitude: float, bedrooms: int, bathrooms: float
+        self, latitude: float, longitude: float, bedrooms: Optional[int], bathrooms: Optional[float]
     ) -> List[CompProperty]:
         """
         Return mock rental comps for testing when real API is unavailable
@@ -165,8 +176,8 @@ class RentalService:
                 "latitude": 30.2672,
                 "longitude": -97.7431,
                 "price": 2400,
-                "bedrooms": bedrooms,
-                "bathrooms": bathrooms,
+                "bedrooms": bedrooms if bedrooms is not None else 2,
+                "bathrooms": bathrooms if bathrooms is not None else 1.5,
                 "square_footage": 1400,
                 "distance_miles": 0.8,
             },
@@ -179,8 +190,8 @@ class RentalService:
                 "latitude": 30.2672,
                 "longitude": -97.7431,
                 "price": 2300,
-                "bedrooms": bedrooms,
-                "bathrooms": bathrooms,
+                "bedrooms": bedrooms if bedrooms is not None else 3,
+                "bathrooms": bathrooms if bathrooms is not None else 2.0,
                 "square_footage": 1350,
                 "distance_miles": 1.2,
             },
@@ -193,8 +204,8 @@ class RentalService:
                 "latitude": 30.2672,
                 "longitude": -97.7431,
                 "price": 2500,
-                "bedrooms": bedrooms,
-                "bathrooms": bathrooms,
+                "bedrooms": bedrooms if bedrooms is not None else 1,
+                "bathrooms": bathrooms if bathrooms is not None else 1.0,
                 "square_footage": 1500,
                 "distance_miles": 1.5,
             },

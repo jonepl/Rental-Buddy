@@ -19,10 +19,10 @@ class CacheService:
         self,
         latitude: float,
         longitude: float,
-        bedrooms: int,
-        bathrooms: float,
+        bedrooms: Optional[int],
+        bathrooms: Optional[float],
         radius_miles: float,
-        days_old: str,
+        days_old: Optional[str],
     ) -> str:
         """
         Generate a cache key based on search parameters
@@ -43,10 +43,10 @@ class CacheService:
         self,
         latitude: float,
         longitude: float,
-        bedrooms: int,
-        bathrooms: float,
+        bedrooms: Optional[int],
+        bathrooms: Optional[float],
         radius_miles: float,
-        days_old: str,
+        days_old: Optional[str],
     ) -> Optional[Any]:
         """
         Get cached result for the given search parameters
@@ -67,10 +67,10 @@ class CacheService:
         self,
         latitude: float,
         longitude: float,
-        bedrooms: int,
-        bathrooms: float,
+        bedrooms: Optional[int],
+        bathrooms: Optional[float],
         radius_miles: float,
-        days_old: str,
+        days_old: Optional[str],
         value: Any,
     ) -> None:
         """

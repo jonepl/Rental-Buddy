@@ -63,13 +63,10 @@ class TestCompsEndpoint:
         yield
         patch.stopall()
 
-    def test_success_returns_comps(self):
+    def test_success_returns_comps_with_address(self):
         req = {
             "address": "123 Main St, Austin, TX",
-            "bedrooms": 2,
-            "bathrooms": 1.5,
             "radius_miles": 5.0,
-            "days_old": "*:270",
         }
 
         resp = client.post("/api/v1/comps", json=req)
@@ -80,16 +77,32 @@ class TestCompsEndpoint:
         assert len(data["comps"]) == 1
         assert data["comps"][0]["address"].startswith("456 Oak Ave")
 
+    def test_success_returns_comps_with_lat_lng(self):
+        req = {
+            "latitude": 30.2672,
+            "longitude": -97.7431,
+            "radius_miles": 5.0,
+        }
+
+        resp = client.post("/api/v1/comps", json=req)
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "input" in data and "comps" in data
+        assert len(data["comps"]) == 1
+        assert data["comps"][0]["latitude"] == 30.263412
+        assert data["comps"][0]["longitude"] == -97.720118
+
     def test_cache_hit_returns_cached_payload(self):
         cached = {
             "input": {
                 "resolved_address": "123 Main St, Austin, TX",
+                "bedrooms": None,
+                "bathrooms": None,
+                "days_old": None,
                 "latitude": 30.2672,
                 "longitude": -97.7431,
-                "bedrooms": 2,
-                "bathrooms": 1.5,
                 "radius_miles": 5.0,
-                "days_old": "*:270",
             },
             "comps": [
                 {
@@ -109,7 +122,7 @@ class TestCompsEndpoint:
             ],
         }
         self.m_cache.get.return_value = cached
-        req = {"address": "123 Main St", "bedrooms": 2, "bathrooms": 1.5}
+        req = {"address": "123 Main St", "latitude": 30.2672, "longitude": -97.7431, "radius_miles": 5.0}
 
         resp = client.post("/api/v1/comps", json=req)
 
@@ -118,7 +131,7 @@ class TestCompsEndpoint:
 
     def test_invalid_location_returns_400(self):
         self.m_resolve.return_value = (None, None, "Invalid coordinates provided")
-        req = {"address": "bad", "bedrooms": 2, "bathrooms": 1.5}
+        req = {"address": "bad", "bedrooms": 2, "bathrooms": 1.5, "radius_miles": 5.0}
 
         resp = client.post("/api/v1/comps", json=req)
 
@@ -128,7 +141,7 @@ class TestCompsEndpoint:
 
     def test_rental_error_falls_back_to_mock(self):
         self.m_rental.get_rental_comps = AsyncMock(return_value=([]))
-        req = {"address": "123 Main St", "bedrooms": 2, "bathrooms": 1.5}
+        req = {"address": "123 Main St", "bedrooms": 2, "bathrooms": 1.5, "radius_miles": 5.0}
 
         resp = client.post("/api/v1/comps", json=req)
 
@@ -138,7 +151,7 @@ class TestCompsEndpoint:
     def test_no_results_anywhere_returns_404(self):
         self.m_rental.get_rental_comps = AsyncMock(return_value=([]))
         self.m_rental.get_mock_comps = AsyncMock(return_value=[])
-        req = {"address": "123 Main St", "bedrooms": 2, "bathrooms": 1.5}
+        req = {"address": "123 Main St", "bedrooms": 2, "bathrooms": 1.5, "radius_miles": 5.0}
 
         resp = client.post("/api/v1/comps", json=req)
 
@@ -147,7 +160,7 @@ class TestCompsEndpoint:
         assert body["detail"]["code"] == ErrorCode.NO_RESULTS
 
     def test_validation_error_422_for_bad_bathrooms(self):
-        req = {"address": "123 Main St", "bedrooms": 2, "bathrooms": 1.25}
+        req = {"address": "123 Main St", "bedrooms": 2, "bathrooms": 1.25, "radius_miles": 5.0}
 
         resp = client.post("/api/v1/comps", json=req)
 

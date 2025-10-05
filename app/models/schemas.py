@@ -19,22 +19,22 @@ class CompsRequest(BaseModel):
     address: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
-    radius_miles: float = Field(default=5.0, gt=0)
-    bedrooms: int = Field(..., ge=0)
-    bathrooms: float = Field(..., gt=0)
-    days_old: str = Field(default="*:270")
+    radius_miles: float = Field(..., gt=0)
+    bedrooms: Optional[int] = Field(default=None, ge=0)
+    bathrooms: Optional[float] = Field(default=None, gt=0)
+    days_old: Optional[str] = Field(default=None)
 
     @field_validator("bathrooms")
     @classmethod
-    def validate_bathrooms(cls, v: float) -> float:
-        # Bathrooms must be in 0.5 increments
-        if v % 0.5 != 0:
+    def validate_bathrooms(cls, v: Optional[float]) -> Optional[float]:
+        # Bathrooms must be in 0.5 increments when provided
+        if v is not None and v % 0.5 != 0:
             raise ValueError("Bathrooms must be in 0.5 increments (e.g., 1, 1.5, 2)")
         return v
 
     @model_validator(mode="after")
     def validate_location_input(self) -> "CompsRequest":
-        # Must provide either address OR lat/lng
+        # Must provide either address OR both lat/lng
         if not self.address and (self.latitude is None or self.longitude is None):
             raise ValueError("Must provide either address or latitude & longitude")
         return self
@@ -61,10 +61,10 @@ class InputSummary(BaseModel):
     resolved_address: str
     latitude: float
     longitude: float
-    bedrooms: int
-    bathrooms: float
+    bedrooms: Optional[int] = None
+    bathrooms: Optional[float] = None
     radius_miles: float
-    days_old: str
+    days_old: Optional[str] = None
 
 
 class CompsResponse(BaseModel):
